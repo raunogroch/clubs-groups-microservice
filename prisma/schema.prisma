@@ -1,0 +1,116 @@
+generator client {
+  provider      = "prisma-client"
+  output        = "../src/generated/prisma"
+  moduleFormat  = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum GroupStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  COMPLETED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  PENDING
+  SUSPENDED
+  WITHDRAWN
+  COMPLETED
+}
+
+enum WeekDay {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum CoachRole {
+  HEAD_COACH
+  ASSISTANT_COACH
+  FITNESS_COACH
+  GOALKEEPER_COACH
+  TECHNICAL_ASSISTANT
+}
+
+model Group {
+  id                  String              @id @default(uuid())
+  name                String             
+  description         String?
+  assignmentId        String             
+  clubId              String             
+  address             String?
+  maxAthletes         Int?               
+  minAge              Int?               
+  maxAge              Int?               
+  status              GroupStatus         @default(ACTIVE)
+  schedules           GroupSchedule[]
+  coaches             GroupCoach[]
+  enrollments         Enrollment[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  available           Boolean             @default(true)
+  @@unique([clubId, name])
+  @@index([assignmentId])
+  @@index([clubId])
+  @@index([status])
+  @@index([available])
+  @@map("groups")
+}
+
+model GroupCoach {
+  id                  String          @id @default(uuid())
+  groupId             String         
+  coachId             String         
+  group               Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  available           Boolean         @default(true)
+  @@unique([groupId, coachId])
+  @@index([coachId])
+  @@index([available])
+  @@map("group_coaches")
+}
+
+model Enrollment {
+  id                  String              @id @default(uuid())
+  groupId             String             
+  athleteId           String             
+  status              EnrollmentStatus    @default(PENDING)
+  joinedAt            DateTime?          
+  leftAt              DateTime?          
+  notes               String?
+  group               Group               @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  available           Boolean             @default(true)
+  @@unique([groupId, athleteId])
+  @@index([athleteId])
+  @@index([status])
+  @@index([available])
+  @@map("enrollments")
+}
+
+model GroupSchedule {
+  id                  String      @id @default(uuid())
+  groupId             String     
+  day                 WeekDay
+  startTime           String     
+  endTime             String     
+  group               Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  available           Boolean     @default(true)
+  @@index([groupId])
+  @@index([day])
+  @@index([available])
+  @@map("group_schedules")
+}

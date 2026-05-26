@@ -1,0 +1,8 @@
+export enum Roles {
+  SUPERADMIN = 'SUPER_ADMIN',
+  ADMIN = 'ADMIN',
+  ASSISTANT = 'ASSISTANT',
+  COACH = 'COACH',
+  PARENT = 'PARENT',
+  ATHLETE = 'ATHLETE',
+}
