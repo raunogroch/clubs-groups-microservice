@@ -19,17 +19,23 @@ export class GroupsRepository {
     });
   }
 
-  countAvailable() {
+  countAvailable(clubId?: string) {
     return this.prisma.group.count({
-      where: { available: true },
+      where: {
+        available: true,
+        ...(clubId && { clubId }),
+      },
     });
   }
 
-  findAll(page: number, limit: number) {
+  findAll(page: number, limit: number, clubId?: string) {
     return this.prisma.group.findMany({
       skip: (page - 1) * limit,
       take: limit,
-      where: { available: true },
+      where: {
+        available: true,
+        ...(clubId && { clubId }),
+      },
       include: this.groupRelations,
       orderBy: {
         createdAt: 'desc',

@@ -72,13 +72,13 @@ export class GroupsService {
 
   async findAll(paginationDto: PaginationDto) {
     try {
-      const { page = 1, limit = 10 } = paginationDto;
+      const { page = 1, limit = 10, clubId } = paginationDto;
 
-      const total = await this.groupsRepository.countAvailable();
+      const total = await this.groupsRepository.countAvailable(clubId);
       const lastPage = Math.ceil(total / limit);
 
       return {
-        data: await this.groupsRepository.findAll(page, limit),
+        data: await this.groupsRepository.findAll(page, limit, clubId),
         meta: {
           total,
           page,
