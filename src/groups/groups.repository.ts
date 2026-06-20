@@ -88,11 +88,11 @@ export class GroupsRepository {
     });
   }
 
-  findGroupByNameAndAssignment(name: string, assignmentId: string) {
+  findGroupByClubAndName(clubId: string, name: string) {
     return this.prisma.group.findFirst({
       where: {
+        clubId,
         name,
-        assignmentId,
         available: true,
       },
     });

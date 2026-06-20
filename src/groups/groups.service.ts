@@ -21,14 +21,16 @@ export class GroupsService {
 
   async create(createGroupDto: CreateGroupDto) {
     try {
-      const existingGroup =
-        await this.groupsRepository.findGroupByNameAndAssignment(
-          createGroupDto.name,
-          createGroupDto.assignmentId,
-        );
+      const existingGroup = await this.groupsRepository.findGroupByClubAndName(
+        createGroupDto.clubId,
+        createGroupDto.name,
+      );
 
       if (existingGroup) {
-        throw new RpcException('Group already exists');
+        throw new RpcException({
+          status: HttpStatus.CONFLICT,
+          message: 'Group already exists in this club',
+        });
       }
 
       await this.validateAssignment(createGroupDto.assignmentId);
