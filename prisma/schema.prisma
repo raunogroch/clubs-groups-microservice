@@ -36,9 +36,6 @@ enum WeekDay {
 enum CoachRole {
   HEAD_COACH
   ASSISTANT_COACH
-  FITNESS_COACH
-  GOALKEEPER_COACH
-  TECHNICAL_ASSISTANT
 }
 
 model Group {

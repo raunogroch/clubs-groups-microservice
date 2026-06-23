@@ -1,0 +1,4 @@
+export enum CoachRoles {
+  HEAD_COACH = 'HEAD_COACH',
+  ASSISTANT_COACH = 'ASSISTANT_COACH',
+}
