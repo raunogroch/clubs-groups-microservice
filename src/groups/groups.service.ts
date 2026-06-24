@@ -15,10 +15,6 @@ export class GroupsService {
     private readonly client: ClientProxy,
   ) {}
 
-  // =========================================================
-  // CREATE
-  // =========================================================
-
   async create(createGroupDto: CreateGroupDto) {
     try {
       const existingGroup = await this.groupsRepository.findGroupByClubAndName(
@@ -37,13 +33,11 @@ export class GroupsService {
 
       const { schedules = [], coaches = [], ...groupData } = createGroupDto;
 
-      // Extract coach IDs and validate them
       const coachIds = coaches.map((coach) => coach.coachId);
       const validatedCoaches = coachIds.length
         ? await this.validateUserRole(coachIds, 'COACH')
         : [];
 
-      // Map validated IDs back to coaches with their roles
       const coachesWithRoles = coaches
         .filter((coach) => validatedCoaches.includes(coach.coachId))
         .map((coach) => ({
@@ -78,10 +72,6 @@ export class GroupsService {
     }
   }
 
-  // =========================================================
-  // FIND ALL
-  // =========================================================
-
   async findAll(paginationDto: PaginationDto) {
     try {
       const { page = 1, limit = 10, clubId } = paginationDto;
@@ -102,10 +92,6 @@ export class GroupsService {
     }
   }
 
-  // =========================================================
-  // FIND ONE
-  // =========================================================
-
   async findOne(id: string) {
     try {
       const group = await this.groupsRepository.findOne(id);
@@ -122,10 +108,6 @@ export class GroupsService {
       throw new RpcException(error);
     }
   }
-
-  // =========================================================
-  // UPDATE
-  // =========================================================
 
   async update(id: string, updateGroupDto: UpdateGroupDto) {
     try {
@@ -146,22 +128,20 @@ export class GroupsService {
         ...groupData
       } = updateGroupDto;
 
-      // Extract coach IDs and validate them if coaches are provided
       const coachIds = coaches ? coaches.map((coach) => coach.coachId) : [];
       const validatedCoaches = coachIds.length
         ? await this.validateUserRole(coachIds, 'COACH')
         : [];
 
-      // Map validated IDs back to coaches with their roles
       const coachesWithRoles =
-        coaches && coaches.length > 0
-          ? coaches
+        coaches === undefined
+          ? undefined
+          : coaches
               .filter((coach) => validatedCoaches.includes(coach.coachId))
               .map((coach) => ({
                 coachId: coach.coachId,
                 role: coach.role,
-              }))
-          : [];
+              }));
 
       return this.groupsRepository.updateWithRelations(
         id,
@@ -173,10 +153,6 @@ export class GroupsService {
       throw new RpcException(error);
     }
   }
-
-  // =========================================================
-  // REMOVE (SOFT DELETE)
-  // =========================================================
 
   async remove(id: string) {
     try {
@@ -198,10 +174,6 @@ export class GroupsService {
       throw new RpcException(error);
     }
   }
-
-  // =========================================================
-  // PRIVATE METHODS
-  // =========================================================
 
   private async validateAssignment(assignmentId: string): Promise<void> {
     try {
