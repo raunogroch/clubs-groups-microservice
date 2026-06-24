@@ -37,7 +37,19 @@ export class GroupsService {
 
       const { schedules = [], coaches = [], ...groupData } = createGroupDto;
 
-      const validatedCoaches = await this.validateUserRole(coaches, 'COACH');
+      // Extract coach IDs and validate them
+      const coachIds = coaches.map((coach) => coach.coachId);
+      const validatedCoaches = coachIds.length
+        ? await this.validateUserRole(coachIds, 'COACH')
+        : [];
+
+      // Map validated IDs back to coaches with their roles
+      const coachesWithRoles = coaches
+        .filter((coach) => validatedCoaches.includes(coach.coachId))
+        .map((coach) => ({
+          coachId: coach.coachId,
+          role: coach.role,
+        }));
 
       return this.groupsRepository.create({
         ...groupData,
@@ -53,12 +65,10 @@ export class GroupsService {
               },
             }
           : undefined,
-        coaches: validatedCoaches.length
+        coaches: coachesWithRoles.length
           ? {
               createMany: {
-                data: validatedCoaches.map((coachId) => ({
-                  coachId,
-                })),
+                data: coachesWithRoles,
               },
             }
           : undefined,
@@ -136,15 +146,28 @@ export class GroupsService {
         ...groupData
       } = updateGroupDto;
 
-      const validatedCoaches = coaches
-        ? await this.validateUserRole(coaches, 'COACH')
+      // Extract coach IDs and validate them if coaches are provided
+      const coachIds = coaches ? coaches.map((coach) => coach.coachId) : [];
+      const validatedCoaches = coachIds.length
+        ? await this.validateUserRole(coachIds, 'COACH')
         : [];
+
+      // Map validated IDs back to coaches with their roles
+      const coachesWithRoles =
+        coaches && coaches.length > 0
+          ? coaches
+              .filter((coach) => validatedCoaches.includes(coach.coachId))
+              .map((coach) => ({
+                coachId: coach.coachId,
+                role: coach.role,
+              }))
+          : [];
 
       return this.groupsRepository.updateWithRelations(
         id,
         groupData,
         schedules,
-        validatedCoaches,
+        coachesWithRoles,
       );
     } catch (error: any) {
       throw new RpcException(error);

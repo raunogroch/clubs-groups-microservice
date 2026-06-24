@@ -2,21 +2,21 @@
 CREATE TYPE "GroupStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'SUSPENDED', 'COMPLETED');
 
 -- CreateEnum
-CREATE TYPE "EnrollmentStatus" AS ENUM ('ACTIVE', 'PENDING', 'SUSPENDED', 'WITHDRAWN', 'COMPLETED');
+CREATE TYPE "EnrollmentStatus" AS ENUM ('PENDING', 'ACTIVE', 'SUSPENDED', 'WITHDRAWN', 'COMPLETED');
 
 -- CreateEnum
 CREATE TYPE "WeekDay" AS ENUM ('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY');
 
 -- CreateEnum
-CREATE TYPE "CoachRole" AS ENUM ('HEAD_COACH', 'ASSISTANT_COACH', 'FITNESS_COACH', 'GOALKEEPER_COACH', 'TECHNICAL_ASSISTANT');
+CREATE TYPE "CoachRole" AS ENUM ('HEAD_COACH', 'ASSISTANT_COACH');
 
 -- CreateTable
 CREATE TABLE "groups" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
     "assignmentId" TEXT NOT NULL,
     "clubId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
     "address" TEXT,
     "maxAthletes" INTEGER,
     "minAge" INTEGER,
@@ -34,6 +34,7 @@ CREATE TABLE "group_coaches" (
     "id" TEXT NOT NULL,
     "groupId" TEXT NOT NULL,
     "coachId" TEXT NOT NULL,
+    "role" "CoachRole" NOT NULL DEFAULT 'ASSISTANT_COACH',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "available" BOOLEAN NOT NULL DEFAULT true,
@@ -44,9 +45,12 @@ CREATE TABLE "group_coaches" (
 -- CreateTable
 CREATE TABLE "enrollments" (
     "id" TEXT NOT NULL,
+    "assignmentId" TEXT NOT NULL,
+    "clubId" TEXT NOT NULL,
     "groupId" TEXT NOT NULL,
     "athleteId" TEXT NOT NULL,
     "status" "EnrollmentStatus" NOT NULL DEFAULT 'PENDING',
+    "enrollmentDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "joinedAt" TIMESTAMP(3),
     "leftAt" TIMESTAMP(3),
     "notes" TEXT,
@@ -97,6 +101,15 @@ CREATE UNIQUE INDEX "group_coaches_groupId_coachId_key" ON "group_coaches"("grou
 
 -- CreateIndex
 CREATE INDEX "enrollments_athleteId_idx" ON "enrollments"("athleteId");
+
+-- CreateIndex
+CREATE INDEX "enrollments_groupId_idx" ON "enrollments"("groupId");
+
+-- CreateIndex
+CREATE INDEX "enrollments_clubId_idx" ON "enrollments"("clubId");
+
+-- CreateIndex
+CREATE INDEX "enrollments_assignmentId_idx" ON "enrollments"("assignmentId");
 
 -- CreateIndex
 CREATE INDEX "enrollments_status_idx" ON "enrollments"("status");

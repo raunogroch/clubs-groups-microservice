@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client';
+import { CoachRole } from '../generated/prisma/client';
 import { PrismaService } from '../prisma.service';
 
 @Injectable()
@@ -103,7 +104,7 @@ export class GroupsRepository {
     id: string,
     groupData: Prisma.GroupUpdateInput,
     schedules?: any[],
-    coaches?: string[],
+    coaches?: Array<{ coachId: string; role: CoachRole }>,
   ) {
     return this.prisma.$transaction(async (tx) => {
       // Update main group data
@@ -139,9 +140,10 @@ export class GroupsRepository {
 
         if (coaches.length > 0) {
           await tx.groupCoach.createMany({
-            data: coaches.map((coachId) => ({
+            data: coaches.map((coach) => ({
               groupId: id,
-              coachId,
+              coachId: coach.coachId,
+              role: coach.role,
             })),
           });
         }

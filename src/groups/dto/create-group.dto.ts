@@ -13,7 +13,7 @@ import {
 import { Type } from 'class-transformer';
 import { GroupStatus } from '../../common';
 import { GroupScheduleDto } from './group-schedule.dto';
-import { CoachRoles } from '../../common/enum/coach-roles.enum';
+import { AddCoachDto } from './add-coach.dto';
 
 export class CreateGroupDto {
   @IsString({ message: 'name must be a string' })
@@ -66,9 +66,9 @@ export class CreateGroupDto {
 
   @IsOptional()
   @IsArray({ message: 'coaches must be an array' })
-  @IsString({ each: true, message: 'each coach id must be a string' })
-  @IsUUID('4', { each: true, message: 'each coach id must be a valid ID' })
-  coaches?: CoachRoles[];
+  @ValidateNested({ each: true })
+  @Type(() => AddCoachDto)
+  coaches?: AddCoachDto[];
 
   @IsOptional()
   @IsArray({ message: 'schedules must be an array' })

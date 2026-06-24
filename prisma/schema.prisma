@@ -8,6 +8,12 @@ datasource db {
   provider = "postgresql"
 }
 
+//
+// ========================
+// ENUMS
+// ========================
+//
+
 enum GroupStatus {
   ACTIVE
   INACTIVE
@@ -16,8 +22,8 @@ enum GroupStatus {
 }
 
 enum EnrollmentStatus {
-  ACTIVE
   PENDING
+  ACTIVE
   SUSPENDED
   WITHDRAWN
   COMPLETED
@@ -38,23 +44,37 @@ enum CoachRole {
   ASSISTANT_COACH
 }
 
+//
+// ========================
+// GROUP
+// ========================
+//
+
 model Group {
-  id                  String              @id @default(uuid())
-  name                String             
-  description         String?
-  assignmentId        String             
-  clubId              String             
-  address             String?
-  maxAthletes         Int?               
-  minAge              Int?               
-  maxAge              Int?               
-  status              GroupStatus         @default(ACTIVE)
-  schedules           GroupSchedule[]
-  coaches             GroupCoach[]
-  enrollments         Enrollment[]
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  available           Boolean             @default(true)
+  id              String          @id @default(uuid())
+
+  assignmentId    String
+  clubId          String
+
+  name            String
+  description     String?
+
+  address         String?
+
+  maxAthletes     Int?
+  minAge          Int?
+  maxAge          Int?
+
+  status          GroupStatus     @default(ACTIVE)
+
+  schedules       GroupSchedule[]
+  coaches        GroupCoach[]
+  enrollments    Enrollment[]
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  available       Boolean         @default(true)
+
   @@unique([clubId, name])
   @@index([assignmentId])
   @@index([clubId])
@@ -63,51 +83,99 @@ model Group {
   @@map("groups")
 }
 
+//
+// ========================
+// GROUP COACHES
+// ========================
+//
+
 model GroupCoach {
-  id                  String          @id @default(uuid())
-  groupId             String         
-  coachId             String         
-  group               Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  available           Boolean         @default(true)
+  id          String      @id @default(uuid())
+
+  groupId     String
+  coachId     String
+
+  role        CoachRole   @default(ASSISTANT_COACH)
+
+  group       Group       @relation(fields: [groupId],references: [id],onDelete: Cascade)
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  available   Boolean     @default(true)
+
   @@unique([groupId, coachId])
   @@index([coachId])
   @@index([available])
   @@map("group_coaches")
 }
 
+//
+// ========================
+// ENROLLMENTS
+// ========================
+//
+
 model Enrollment {
-  id                  String              @id @default(uuid())
-  groupId             String             
-  athleteId           String             
-  status              EnrollmentStatus    @default(PENDING)
-  joinedAt            DateTime?          
-  leftAt              DateTime?          
-  notes               String?
-  group               Group               @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  available           Boolean             @default(true)
+  id              String              @id @default(uuid())
+
+  assignmentId    String
+  clubId          String
+
+  groupId         String
+  athleteId       String
+
+  status          EnrollmentStatus    @default(PENDING)
+
+  enrollmentDate  DateTime            @default(now())
+  joinedAt        DateTime?
+  leftAt          DateTime?
+
+  notes           String?
+
+  group           Group               @relation(fields: [groupId],references: [id],onDelete: Cascade)
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  available       Boolean             @default(true)
+
   @@unique([groupId, athleteId])
+
   @@index([athleteId])
+  @@index([groupId])
+  @@index([clubId])
+  @@index([assignmentId])
   @@index([status])
   @@index([available])
+
   @@map("enrollments")
 }
 
+//
+// ========================
+// GROUP SCHEDULES
+// ========================
+//
+
 model GroupSchedule {
-  id                  String      @id @default(uuid())
-  groupId             String     
-  day                 WeekDay
-  startTime           String     
-  endTime             String     
-  group               Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  available           Boolean     @default(true)
+  id          String      @id @default(uuid())
+
+  groupId     String
+
+  day         WeekDay
+
+  startTime   String
+  endTime     String
+
+  group       Group       @relation(fields: [groupId],references: [id], onDelete: Cascade)
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  available   Boolean     @default(true)
+
   @@index([groupId])
   @@index([day])
   @@index([available])
+
   @@map("group_schedules")
 }
