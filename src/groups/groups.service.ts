@@ -6,6 +6,7 @@ import { NATS_SERVICE } from '../config';
 import { PaginationDto } from '../common';
 import { CreateGroupDto, UpdateGroupDto } from './dto';
 import { GroupsRepository } from './groups.repository';
+import { EnrollmentStatus } from '../generated/prisma/client';
 
 @Injectable()
 export class GroupsService {
@@ -31,7 +32,7 @@ export class GroupsService {
 
       await this.validateAssignment(createGroupDto.assignmentId);
 
-      const { schedules = [], coaches = [], ...groupData } = createGroupDto;
+      const { schedules = [], coaches = [], enrollments = [], ...groupData } = createGroupDto;
 
       const coachIds = coaches.map((coach) => coach.coachId);
       const validatedCoaches = coachIds.length
@@ -64,6 +65,25 @@ export class GroupsService {
               createMany: {
                 data: coachesWithRoles,
               },
+            }
+          : undefined,
+        enrollments: enrollments.length
+          ? {
+              create: enrollments.map((enrollment) => ({
+                assignmentId: enrollment.assignmentId,
+                clubId: enrollment.clubId,
+                athleteId: enrollment.athleteId,
+                status: (enrollment.status as EnrollmentStatus | undefined) ?? EnrollmentStatus.PENDING,
+                enrollmentDate: enrollment.enrollmentDate
+                  ? new Date(enrollment.enrollmentDate)
+                  : undefined,
+                joinedAt: enrollment.joinedAt
+                  ? new Date(enrollment.joinedAt)
+                  : undefined,
+                leftAt: enrollment.leftAt ? new Date(enrollment.leftAt) : undefined,
+                notes: enrollment.notes,
+                available: enrollment.available ?? true,
+              })),
             }
           : undefined,
       });
@@ -125,6 +145,7 @@ export class GroupsService {
         schedules,
         coaches,
         assignmentId,
+        enrollments,
         ...groupData
       } = updateGroupDto;
 
@@ -143,12 +164,35 @@ export class GroupsService {
                 role: coach.role,
               }));
 
-      return this.groupsRepository.updateWithRelations(
+      const updatedGroup = await this.groupsRepository.updateWithRelations(
         id,
         groupData,
         schedules,
         coachesWithRoles,
       );
+
+      if (enrollments?.length) {
+        await this.groupsRepository.createEnrollments(
+          id,
+          enrollments.map((enrollment) => ({
+            assignmentId: enrollment.assignmentId,
+            clubId: enrollment.clubId,
+            athleteId: enrollment.athleteId,
+            status: (enrollment.status as EnrollmentStatus | undefined) ?? EnrollmentStatus.PENDING,
+            enrollmentDate: enrollment.enrollmentDate
+              ? new Date(enrollment.enrollmentDate)
+              : undefined,
+            joinedAt: enrollment.joinedAt
+              ? new Date(enrollment.joinedAt)
+              : undefined,
+            leftAt: enrollment.leftAt ? new Date(enrollment.leftAt) : undefined,
+            notes: enrollment.notes,
+            available: enrollment.available ?? true,
+          })),
+        );
+      }
+
+      return updatedGroup;
     } catch (error: any) {
       throw new RpcException(error);
     }

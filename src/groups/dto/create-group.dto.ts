@@ -13,6 +13,7 @@ import { Type } from 'class-transformer';
 import { GroupStatus } from '../../common';
 import { GroupScheduleDto } from './group-schedule.dto';
 import { AddCoachDto } from './add-coach.dto';
+import { EnrollmentDto } from './enrollment.dto';
 
 export class CreateGroupDto {
   @IsString({ message: 'name must be a string' })
@@ -74,4 +75,10 @@ export class CreateGroupDto {
   @ValidateNested({ each: true })
   @Type(() => GroupScheduleDto)
   schedules?: GroupScheduleDto[];
+
+  @IsOptional()
+  @IsArray({ message: 'enrollments must be an array' })
+  @ValidateNested({ each: true })
+  @Type(() => EnrollmentDto)
+  enrollments?: EnrollmentDto[];
 }

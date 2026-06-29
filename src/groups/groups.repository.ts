@@ -89,6 +89,15 @@ export class GroupsRepository {
     });
   }
 
+  createEnrollments(groupId: string, enrollments: Array<Omit<Prisma.EnrollmentCreateManyInput, 'groupId'>>) {
+    return this.prisma.enrollment.createMany({
+      data: enrollments.map((enrollment) => ({
+        ...enrollment,
+        groupId,
+      })),
+    });
+  }
+
   findGroupByClubAndName(clubId: string, name: string) {
     return this.prisma.group.findFirst({
       where: {
