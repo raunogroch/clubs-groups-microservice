@@ -89,7 +89,10 @@ export class GroupsRepository {
     });
   }
 
-  createEnrollments(groupId: string, enrollments: Array<Omit<Prisma.EnrollmentCreateManyInput, 'groupId'>>) {
+  createEnrollments(
+    groupId: string,
+    enrollments: Array<Omit<Prisma.EnrollmentCreateManyInput, 'groupId'>>,
+  ) {
     return this.prisma.enrollment.createMany({
       data: enrollments.map((enrollment) => ({
         ...enrollment,

@@ -32,7 +32,12 @@ export class GroupsService {
 
       await this.validateAssignment(createGroupDto.assignmentId);
 
-      const { schedules = [], coaches = [], enrollments = [], ...groupData } = createGroupDto;
+      const {
+        schedules = [],
+        coaches = [],
+        enrollments = [],
+        ...groupData
+      } = createGroupDto;
 
       const coachIds = coaches.map((coach) => coach.coachId);
       const validatedCoaches = coachIds.length
@@ -73,14 +78,18 @@ export class GroupsService {
                 assignmentId: enrollment.assignmentId,
                 clubId: enrollment.clubId,
                 athleteId: enrollment.athleteId,
-                status: (enrollment.status as EnrollmentStatus | undefined) ?? EnrollmentStatus.PENDING,
+                status:
+                  (enrollment.status as EnrollmentStatus | undefined) ??
+                  EnrollmentStatus.PENDING,
                 enrollmentDate: enrollment.enrollmentDate
                   ? new Date(enrollment.enrollmentDate)
                   : undefined,
                 joinedAt: enrollment.joinedAt
                   ? new Date(enrollment.joinedAt)
                   : undefined,
-                leftAt: enrollment.leftAt ? new Date(enrollment.leftAt) : undefined,
+                leftAt: enrollment.leftAt
+                  ? new Date(enrollment.leftAt)
+                  : undefined,
                 notes: enrollment.notes,
                 available: enrollment.available ?? true,
               })),
@@ -178,7 +187,9 @@ export class GroupsService {
             assignmentId: enrollment.assignmentId,
             clubId: enrollment.clubId,
             athleteId: enrollment.athleteId,
-            status: (enrollment.status as EnrollmentStatus | undefined) ?? EnrollmentStatus.PENDING,
+            status:
+              (enrollment.status as EnrollmentStatus | undefined) ??
+              EnrollmentStatus.PENDING,
             enrollmentDate: enrollment.enrollmentDate
               ? new Date(enrollment.enrollmentDate)
               : undefined,
