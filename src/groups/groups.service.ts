@@ -1,19 +1,17 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 
-import { NATS_SERVICE } from '../config';
 import { PaginationDto } from '../common';
 import { CreateGroupDto, UpdateGroupDto } from './dto';
 import { GroupsRepository } from './groups.repository';
 import { EnrollmentStatus } from '../generated/prisma/client';
+import { NatsClientService } from '../transports/nats-client.service';
 
 @Injectable()
 export class GroupsService {
   constructor(
     private readonly groupsRepository: GroupsRepository,
-    @Inject(NATS_SERVICE)
-    private readonly client: ClientProxy,
+    private readonly natsClientService: NatsClientService,
   ) {}
 
   async create(createGroupDto: CreateGroupDto) {
@@ -232,9 +230,7 @@ export class GroupsService {
 
   private async validateAssignment(assignmentId: string): Promise<void> {
     try {
-      await firstValueFrom(
-        this.client.send('assignment.validate', assignmentId),
-      );
+      await this.natsClientService.send('assignment.validate', assignmentId);
     } catch (error: any) {
       throw new RpcException({
         status: HttpStatus.BAD_REQUEST,
@@ -252,11 +248,12 @@ export class GroupsService {
         return [];
       }
 
-      return await firstValueFrom<string[]>(
-        this.client.send('users.admin.validate', {
+      return await this.natsClientService.send<string[]>(
+        'users.admin.validate',
+        {
           ids: users,
           role,
-        }),
+        },
       );
     } catch (error: any) {
       throw new RpcException({
